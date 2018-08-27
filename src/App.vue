@@ -2,12 +2,17 @@
   <div id="app">
     <div class='cinemaRoom'>
       <div v-for="(row,rowIndex) in rows" class="row">
-        <div v-for="(row,seatIndex) in rows" class="seat" :row="rowIndex+1" :seat="seatIndex+1">
+        <div
+          v-for="(row,seatIndex) in rows"
+          class="seat "
+          :row="rowIndex+1"
+          :seat="seatIndex+1"
+          @click="bookIt"
+          v-bind:class="{purchased:isPurchased}">
         </div>
       </div>
     </div>
     <div class='result'>
-      <result></result>
     </div>
     <div class="thanks">Спасибо за заказ!</div>
   </div>
@@ -19,7 +24,7 @@ export default {
   data () {
     return {
       rows: [10, 10, 10, 10, 10, 10, 10, 10, 10, 10],
-      result: ''
+      isPurchased: false
     }
   },
   mounted: function() {
@@ -39,16 +44,18 @@ export default {
         return Math.floor(Math.random() * 10) + 1;
     },
     startToBook() {
-    console.log('123');
         let freeSeats = this.$el.querySelectorAll('.seat:not(.seat--reserved)');
-        for (let i = 0; i < freeSeats.length; i++) {
-            freeSeats[i].addEventListener('click', function (e) {
-                // 1st click to buy a ticket ,
-                // 2nd click to cancel
-                e.currentTarget.classList.toggle('seat--purchased');
-                this.showSeatsToBay();
-            });
-        }
+        // for (let i = 0; i < freeSeats.length; i++) {
+        //     freeSeats[i].addEventListener('click', function (e) {
+        //         // 1st click to buy a ticket ,
+        //         // 2nd click to cancel
+        //         e.currentTarget.classList.toggle('seat--purchased');
+        //         this.showSeatsToBay();
+        //     });
+        // }
+    },
+    bookIt() {
+      this.isPurchased = !this.isPurchased;
     },
     showSeatsToBay() {
         let result = '<p>Вы выбрали места:</p>', totalPrice = 0,
@@ -117,7 +124,7 @@ export default {
       cursor: pointer;
   }
 
-  .seat--purchased {
+  .purchased {
       background-color: yellow;
   }
 
