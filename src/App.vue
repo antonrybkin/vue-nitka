@@ -1,152 +1,118 @@
 <template>
-  <div id="app">
-    <div class='cinemaRoom'>
-      <div v-for="(row,rowIndex) in rows" class="row">
-        <div
-          v-for="(row,seatIndex) in rows"
-          class="seat "
-          :row="rowIndex+1"
-          :seat="seatIndex+1"
-          @click="bookIt"
-          v-bind:class="{purchased:isPurchased}">
+    <div id="app">
+        <div class='cinemaRoom'>
+            <div v-for="(row,rowIndex) in rows" class="row">
+                <seat
+                    v-for="(seat,seatIndex) in row"
+                    :key="seatIndex"
+                    :row="rowIndex+1"
+                    :seat="seatIndex+1"
+                    @showSeatsToBay="showSeatsToBay">
+                </seat>
+            </div>
         </div>
-      </div>
+        <div class='result' v-if="seats.length">
+            <p>Вы выбрали места:</p>
+            <div class="ticket" v-for="ticket in seats">
+                <div class="ticket">ряд {{ticket.row}} место {{ticket.seat}}</div>
+            </div>
+            <p>Общая стоимость: {{100*seats.length}} рублей</p>
+            <button type="button" @click="bayTheTickets">Купить</button>
+            <button type="button" @click="clearList">Отмена</button>
+        </div>
+        <div class="thanks" v-if="thanks">Спасибо за заказ!</div>
     </div>
-    <div class='result'>
-    </div>
-    <div class="thanks">Спасибо за заказ!</div>
-  </div>
 </template>
 
 <script>
-export default {
-  name: 'app',
-  data () {
-    return {
-      rows: [10, 10, 10, 10, 10, 10, 10, 10, 10, 10],
-      isPurchased: false
-    }
-  },
-  mounted: function() {
-    this.fillTheRoom()
-  },
-  methods: {
-    fillTheRoom() {
-      // Some places are occupied initially (10 random squares)
-      for (let i = 0; i < 10; i++) {
-          let theRow = this.getRandomInt(), theSeat = this.getRandomInt();
-          this.$el.querySelector('.seat[row="' + theRow + '"][seat="' + theSeat + '"]').classList.add("seat--reserved");
-          i === 9 ? this.startToBook() : 0;
-      }
-    },
-    getRandomInt() {
-        // just an auxiliary function to obtain an integer (1-10)
-        return Math.floor(Math.random() * 10) + 1;
-    },
-    startToBook() {
-        let freeSeats = this.$el.querySelectorAll('.seat:not(.seat--reserved)');
-        // for (let i = 0; i < freeSeats.length; i++) {
-        //     freeSeats[i].addEventListener('click', function (e) {
-        //         // 1st click to buy a ticket ,
-        //         // 2nd click to cancel
-        //         e.currentTarget.classList.toggle('seat--purchased');
-        //         this.showSeatsToBay();
-        //     });
-        // }
-    },
-    bookIt() {
-      this.isPurchased = !this.isPurchased;
-    },
-    showSeatsToBay() {
-        let result = '<p>Вы выбрали места:</p>', totalPrice = 0,
-            purchasedSeats = this.$el.querySelectorAll('.seat.seat--purchased');
+    import seat from './components/Seat.vue'
 
-        // show the list for purchased places
-        for (let i = 0; i < purchasedSeats.length; i++) {
-            result += '<div class="ticket">ряд ' +
-                purchasedSeats[i].dataset.row + ' место ' +
-                purchasedSeats[i].dataset.seat + '</div>';
-            totalPrice += 100; // стоимость билета
+    export default {
+        components: {
+            seat: seat
+        },
+        name: 'app',
+        data () {
+            return {
+                rows: [10, 10, 10, 10, 10, 10, 10, 10, 10, 10],
+                seats: {},
+                result: '',
+                thanks: false
+            }
+        },
+        mounted: function () {
+            // Some places are occupied initially (10 random squares)
+            for (let i = 0; i < 10; i++) {
+                let theRow = this.getRandomInt(), theSeat = this.getRandomInt();
+                this.$el.querySelector('.seat[row="' + theRow + '"][seat="' + theSeat + '"]').classList.add("seat--reserved");
+            }
+        },
+        methods: {
+            getRandomInt() {
+                // just an auxiliary function to obtain an integer (1-10)
+                return Math.floor(Math.random() * 10) + 1;
+            },
+            showSeatsToBay() {
+                // Show the seats you want to buy
+                this.seats = this.$children.filter(element => element._data.isPurchased);
+                this.seats.forEach(function(element) {
+                    element.row = element.$attrs.row;
+                    element.seat = element.$attrs.seat;
+                });
+            },
+            bayTheTickets(){
+                // Let's buy
+                this.thanks=true;
+                this.$el.querySelectorAll('.seat.purchased').forEach(function(element) {
+                    element.classList.add("seat--reserved");
+                })
+            },
+            clearList(){
+                // Clear
+                this.thanks=false;
+                this.seats.forEach(function(element) {
+                    element.$el.classList.remove("purchased");
+                })
+                this.seats={};
+            }
         }
-        result += '<p>Общая стоимость: ' + totalPrice + ' рублей</p>\n' +
-            '<button type="button" class="result__buy">Купить</button>\n' +
-            '<button type="button" class="result__cancel">Отмена</button>';
 
-        this.result = result;
-
-        // Let's buy
-        document.querySelector('.result__buy').addEventListener('click', function (e) {
-            for (let i = 0; i < purchasedSeats.length; i++) {
-                purchasedSeats[i].classList.add("seat--reserved");
-            }
-            document.querySelector('.thanks').classList.add("thanks--show");
-        });
-
-        // Clear
-        document.querySelector('.result__cancel').addEventListener('click', function (e) {
-            for (let i = 0; i < purchasedSeats.length; i++) {
-                purchasedSeats[i].classList.remove("seat--purchased");
-                showSeatsToBay();
-            }
-        });
-      }
     }
-  }
 </script>
 
 <style lang="scss" scoped>
-  #app {
-    text-align: center;
-    color: #2c3e50;
-    margin-top: 60px;
-  }
+    #app {
+        padding: 20px;
+    }
 
-  * {
-      margin: 0;
-  }
+    * {
+        margin: 0;
+    }
 
-  body {
-      padding: 20px;
-  }
+    body {
+        padding: 20px;
+    }
 
-  .cinemaRoom {
-      text-align: center;
-      display: inline-block;
-      vertical-align: top;
-  }
+    .cinemaRoom {
+        text-align: center;
+        display: inline-block;
+        vertical-align: top;
+    }
 
-  .seat {
-      height: 30px;
-      width: 30px;
-      margin-right: 2px;
-      background-color: green;
-      display: inline-block;
-      cursor: pointer;
-  }
+    .row {
+        margin-bottom: 2px;
+    }
 
-  .purchased {
-      background-color: yellow;
-  }
+    .result {
+        font-size: 18px;
+        display: inline-block;
+        width: 290px;
+        margin-right: 5px;
+    }
 
-  .seat--reserved {
-      background-color: red;
-  }
-
-  .result {
-      font-size: 18px;
-      display: inline-block;
-      width: 290px;
-      margin-right: 5px;
-  }
-
-  .thanks {
-      font-size: 90px;
-      color: green;
-      opacity: 0;
-      transition: .75s ease-in-out;
-  }
-
-  .thanks--show {
-      opacity: 1;
-  }
+    .thanks {
+        font-size: 90px;
+        color: green;
+        transition: .75s ease-in-out;
+    }
 </style>
