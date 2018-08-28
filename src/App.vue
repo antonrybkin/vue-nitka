@@ -20,7 +20,7 @@
             <button type="button" @click="bayTheTickets">Купить</button>
             <button type="button" @click="clearList">Отмена</button>
         </div>
-        <div class='result' v-else>Выберете место</div>
+        <div class='result' v-else>Выберете места</div>
         <transition name="fade">
             <div class="thanks" v-if="thanks">Спасибо за заказ!</div>
         </transition>
