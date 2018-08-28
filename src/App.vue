@@ -13,14 +13,17 @@
         </div>
         <div class='result' v-if="seats.length">
             <p>Вы выбрали места:</p>
-            <div class="ticket" v-for="ticket in seats">
+            <div class="ticket" v-for="(ticket,index) in seats" :key="ticket._uid" :index="index" :item="ticket">
                 <div class="ticket">ряд {{ticket.row}} место {{ticket.seat}}</div>
             </div>
             <p>Общая стоимость: {{100*seats.length}} рублей</p>
             <button type="button" @click="bayTheTickets">Купить</button>
             <button type="button" @click="clearList">Отмена</button>
         </div>
-        <div class="thanks" v-if="thanks">Спасибо за заказ!</div>
+        <div class='result' v-else>Выберете место</div>
+        <transition name="fade">
+            <div class="thanks" v-if="thanks">Спасибо за заказ!</div>
+        </transition>
     </div>
 </template>
 
@@ -54,7 +57,7 @@
             },
             showSeatsToBay() {
                 // Show the seats you want to buy
-                this.seats = this.$children.filter(element => element._data.isPurchased);
+                this.seats = this.$children.filter(element => element.isPurchased && !element.$el.classList.contains('seat--reserved'));
                 this.seats.forEach(function(element) {
                     element.row = element.$attrs.row;
                     element.seat = element.$attrs.seat;
@@ -65,15 +68,18 @@
                 this.thanks=true;
                 this.$el.querySelectorAll('.seat.purchased').forEach(function(element) {
                     element.classList.add("seat--reserved");
-                })
+                });
             },
             clearList(){
                 // Clear
                 this.thanks=false;
                 this.seats.forEach(function(element) {
                     element.$el.classList.remove("purchased");
-                })
-                this.seats={};
+                });
+                this.seats.splice(0, this.seats.length);
+                this.$children.filter(element => element.isPurchased).forEach(function(element) {
+                    !element.$el.classList.contains("seat--reserved") ? element.isPurchased = false : 0;
+                });
             }
         }
 
@@ -81,9 +87,6 @@
 </script>
 
 <style lang="scss" scoped>
-    #app {
-        padding: 20px;
-    }
 
     * {
         margin: 0;
@@ -113,6 +116,11 @@
     .thanks {
         font-size: 90px;
         color: green;
-        transition: .75s ease-in-out;
+    }
+    .fade-enter-active, .fade-leave-active {
+        transition: opacity .5s;
+    }
+    .fade-enter, .fade-leave-to {
+        opacity: 0;
     }
 </style>
