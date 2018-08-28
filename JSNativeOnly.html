@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>Касса кинотеатра</title>
+    <style type="text/css">
+        * {
+            margin: 0;
+        }
+
+        body {
+            padding: 20px;
+        }
+
+        .cinemaRoom {
+            text-align: center;
+            display: inline-block;
+            vertical-align: top;
+        }
+
+        .seat {
+            height: 30px;
+            width: 30px;
+            margin-right: 2px;
+            background-color: green;
+            display: inline-block;
+            cursor: pointer;
+        }
+
+        .separator {
+            height: 1px;
+            width: 100%;
+            display: block;
+        }
+
+        .seat--purchased {
+            background-color: yellow;
+        }
+
+        .seat--reserved {
+            background-color: red;
+        }
+
+        .result {
+            font-size: 18px;
+            display: inline-block;
+            width: 290px;
+            margin-right: 5px;
+        }
+
+        .thanks {
+            font-size: 90px;
+            color: green;
+            opacity: 0;
+            transition: .75s ease-in-out;
+        }
+
+        .thanks--show {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+<div class='cinemaRoom'></div>
+<div class='result'></div>
+<div class="thanks">Спасибо за заказ!</div>
+
+<script type="text/javascript">
+
+    function nitkaBooking() {
+
+        const cinemaRoom1 = {row: [10, 10, 10, 10, 10, 10, 10, 10, 10, 10]};
+        let cinemaRoomMap = '';
+
+        cinemaRoom1.row.forEach(function (numberOfSeats, row) {
+            let cinemaRoomRow = '';
+            row++
+            for (let i = 1; i <= numberOfSeats; i++) {
+                // collect the seats
+                cinemaRoomRow += '<div class="seat" data-row="' +
+                    row + '" data-seat="' +
+                    i + '">&nbsp;</div>';
+            }
+            // collect the hall with the aisles between the rows
+            cinemaRoomMap += cinemaRoomRow + '<div class="separator">&nbsp;</div>';
+            row == numberOfSeats ? fillTheRoom() : 0;
+        });
+
+        // Fill the room
+        function fillTheRoom() {
+            document.querySelector('.cinemaRoom').innerHTML = cinemaRoomMap;
+            // Some places are occupied initially (10 random squares)
+            for (let i = 0; i <= 10; i++) {
+                let theRow = getRandomInt(), theSeat = getRandomInt();
+                document.querySelector('.cinemaRoom div[data-row="' + theRow + '"][data-seat="' + theSeat + '"]').classList.add("seat--reserved");
+                i == 10 ? startToBook() : 0;
+            }
+        }
+
+        // Here, on the click, we determine that the place is booked
+        function startToBook() {
+            let freeSeats = document.querySelectorAll('.seat:not(.seat--reserved)');
+            for (let i = 0; i < freeSeats.length; i++) {
+                freeSeats[i].addEventListener('click', function (e) {
+                    // 1st click to buy a ticket ,
+                    // 2nd click to cancel
+                    e.currentTarget.classList.toggle('seat--purchased');
+                    showSeatsToBay();
+                });
+            }
+        }
+
+        // Show the seats you want to buy
+        function showSeatsToBay() {
+            let result = '<p>Вы выбрали места:</p>', totalPrice = 0,
+                purchasedSeats = document.querySelectorAll('.seat.seat--purchased');
+
+            // and show the list of purchased places
+            for (let i = 0; i < purchasedSeats.length; i++) {
+                result += '<div class="ticket">ряд ' +
+                    purchasedSeats[i].dataset.row + ' место ' +
+                    purchasedSeats[i].dataset.seat + '</div>';
+                totalPrice += 100; // стоимость билета
+            }
+            result += '<p>Общая стоимость: ' + totalPrice + ' рублей</p>\n' +
+                '<button type="button" class="result__buy">Купить</button>\n' +
+                '<button type="button" class="result__cancel">Отмена</button>';
+
+            document.querySelector('.result').innerHTML = result;
+
+            // Let's buy
+            document.querySelector('.result__buy').addEventListener('click', function (e) {
+                for (let i = 0; i < purchasedSeats.length; i++) {
+                    purchasedSeats[i].classList.add("seat--reserved");
+                }
+                document.querySelector('.thanks').classList.add("thanks--show");
+            });
+
+            // Clear
+            document.querySelector('.result__cancel').addEventListener('click', function (e) {
+                for (let i = 0; i < purchasedSeats.length; i++) {
+                    purchasedSeats[i].classList.remove("seat--purchased");
+                    showSeatsToBay();
+                }
+            });
+        }
+
+        // just an auxiliary function to obtain an integer (1-10)
+        function getRandomInt() {
+            return Math.floor(Math.random() * 10) + 1;
+        }
+    }
+    window.addEventListener("load", nitkaBooking);
+
+</script>
+</body>
+</html>

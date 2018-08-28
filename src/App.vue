@@ -13,7 +13,7 @@
         </div>
         <div class='result' v-if="seats.length">
             <p>Вы выбрали места:</p>
-            <div class="ticket" v-for="(ticket,index) in seats" :key="ticket._uid" :index="index" :item="ticket">
+            <div class="ticket" v-for="ticket in seats">
                 <div class="ticket">ряд {{ticket.row}} место {{ticket.seat}}</div>
             </div>
             <p>Общая стоимость: {{100*seats.length}} рублей</p>
@@ -35,7 +35,7 @@
             seat: seat
         },
         name: 'app',
-        data () {
+        data() {
             return {
                 rows: [10, 10, 10, 10, 10, 10, 10, 10, 10, 10],
                 seats: {},
@@ -87,7 +87,6 @@
 </script>
 
 <style lang="scss" scoped>
-
     * {
         margin: 0;
     }
